@@ -1,0 +1,4 @@
+name=Pawn
+movementRule=8
+captureRule=7,9
+firstMove=8,88

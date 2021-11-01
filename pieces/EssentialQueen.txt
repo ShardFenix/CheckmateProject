@@ -1,0 +1,5 @@
+movementRule=1+,3+,7+,9+,8+,4+,6+,2+
+name=Queen
+essential=true
+maxDistance=7
+postMove=maxDistance--

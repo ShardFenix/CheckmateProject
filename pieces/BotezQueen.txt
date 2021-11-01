@@ -1,0 +1,3 @@
+movementRule=1+,3+,7+,9+,8+,4+,6+,2+
+name=Queen
+onDeath=ExtraTurn()

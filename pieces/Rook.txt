@@ -1,0 +1,2 @@
+movementRule=8+,4+,6+,2+
+name=Rook
