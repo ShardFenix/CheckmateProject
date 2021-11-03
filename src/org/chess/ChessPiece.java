@@ -152,6 +152,10 @@ public class ChessPiece {
 		}
 		return vars.get(key);
 	}
+	
+	public boolean isEssential(){
+		return "true".equalsIgnoreCase(getVar("essential"));
+	}
 
 	void setIsPristine(boolean b) {
 		pristine = b;
