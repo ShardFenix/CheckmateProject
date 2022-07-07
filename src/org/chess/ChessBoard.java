@@ -11,7 +11,7 @@ import java.util.List;
  * You are also allowed to add any other new methods you need.
  */
 public class ChessBoard extends AbstractChessBoard {
-
+	List<ChessPiece> attackingPieces = new LinkedList<ChessPiece>();
 
 	public ChessBoard(String fileName) throws IOException {
 		super(fileName);
@@ -52,6 +52,7 @@ public class ChessBoard extends AbstractChessBoard {
 					}
 					if (canMove(piece, kingPos.x, kingPos.y) == null)
 					{
+						attackingPieces.add(piece);
 						return true;
 					}
 				}
@@ -94,12 +95,11 @@ public class ChessBoard extends AbstractChessBoard {
                 if (piece == null) {
                     continue;
                 }
-                if (piece.getColor() != c) {
-                    continue;
-                }
-                if (piece.isEssential()){
+                if (piece.getColor() == c && piece.isEssential())
+                {
                     return piece;
                 }
+
             }
         }
         return piece;
@@ -118,83 +118,62 @@ public class ChessBoard extends AbstractChessBoard {
 		{
 			return false;
 		}
-		Point kingPos = playerKingPos(c);
 		ChessPiece kingPiece = playerKingPiece(c);
-		List<Point> enemyPieces = getEnemyPieces(c);
-		List<Point> alliedPieces = getAlliedPieces(c);
+		List<ChessPiece> alliedPieces = getAlliedPieces(c);
 		List<Point> kingMovableSpaces = getKingMovableSpaces(c);
-		List<Point> kingRuleset = getKingRuleset(c);
+		List<Point> attackingSpaces = getAttackingSpaces(c);
 
-		if (kingPos != null && enemyPieces != null) {
-			for (Point enemyPiece : enemyPieces)
+		if (kingPiece != null && !attackingPieces.isEmpty())
+		{		
+			for (ChessPiece alliedPiece : alliedPieces)
 			{
-				if (canMove(kingPiece, enemyPiece.x, enemyPiece.y) == null)
-				{
-					return false;
-				}
-				for (Point alliedPiece : alliedPieces)
-				{
-					 for(Point rulesetSpace : kingRuleset)
+				 for(Point attackingSpace : attackingSpaces)
+				 {
+					 if (canMove(alliedPiece, attackingSpace.x, attackingSpace.y) == null) 
 					 {
-						 if (canMove(get(alliedPiece.x,alliedPiece.y), rulesetSpace.x, rulesetSpace.y) == null) 
-						 {
-							 return false;
-						 }
+						 return false;
 					 }
-				}
+					 
+					 for (ChessPiece attackingPiece : attackingPieces)
+						{
+						 	if(canMove(alliedPiece, attackingPiece.x, attackingPiece.y) == null)
+						 	{
+						 		return false;
+						 	}
+							if (canMove(kingPiece, attackingPiece.x, attackingPiece.y) == null)
+							{
+								return false;
+							}
+						}
+				 }
 			}
-		}
-		if (kingMovableSpaces.isEmpty())
-		{
-			return true;
+			
+			if (!kingMovableSpaces.isEmpty())
+			{
+				return false;
+			}
 		}
 
-		return false;
+		return true;
 	}
 	
-	public List<Point> getEnemyPieces(char c)
-	{
-		List<Point> enemyPieces = new LinkedList<Point>();
-		for	(int x = 0; x<= 7; x++)
-		{
-			for (int y = 0; y <= 7; y++)
-			{
-				ChessPiece piece = get(x,y);
-				Point chessPiecePos = new Point();
-				chessPiecePos.x = x;
-				chessPiecePos.y = y;
-				if (piece == null)
-				{
-					continue;
-				}
-				if (piece.getColor() != c)
-				{
-					enemyPieces.add(chessPiecePos);
-				}
-			}
-		}
-		return enemyPieces;
-	}
 	
-	public List<Point> getAlliedPieces(char c)
+	public List<ChessPiece> getAlliedPieces(char c)
 	{
-		List<Point> alliedPieces = new LinkedList<Point>();
+		List<ChessPiece> alliedPieces = new LinkedList<ChessPiece>();
 		ChessPiece kingPiece = playerKingPiece(c);
 		for	(int x = 0; x<= 7; x++)
 		{
 			for (int y = 0; y <= 7; y++)
 			{
 				ChessPiece piece = get(x,y);
-				Point chessPiecePos = new Point();
-				chessPiecePos.x = x;
-				chessPiecePos.y = y;
 				if (piece == null)
 				{
 					continue;
 				}
 				if (piece.getColor() == c && piece != kingPiece)
 				{
-					alliedPieces.add(chessPiecePos);
+					alliedPieces.add(piece);
 				}
 			}
 		}
@@ -225,29 +204,41 @@ public class ChessBoard extends AbstractChessBoard {
 		return movableSpaces;
 	}
 	
-	public List<Point> getKingRuleset(char c)
+	public List<Point> getAttackingSpaces(char c)
 	{
-		Point kingPos = playerKingPos(c);
-		ChessPiece piece = playerKingPiece(c);
-		List<Point> ruleset = new LinkedList<Point>();
-		if (kingPos != null && piece != null)
+		List<Point> attackingSpaces = new LinkedList<Point>();
+		for (ChessPiece attackingPiece : attackingPieces)
 		{
-			for (int i = kingPos.x - 1; i < kingPos.x + 1; ++i) {
-			    for (int j = kingPos.y - 1; j < kingPos.y + 1; ++j) {
-			        Point square = new Point();
-			        if (kingPos.x != i && kingPos.y != j)
-			        {
-			        	if (i > -1 && j < 9)
-			        	{
-					        square.x = i;
-					        square.y = j;
-					        ruleset.add(square);
-			        	}
-			        }
-			    }
-			}
+			Point kingPos = playerKingPos(c);
+			int dx, dy, p, x, y;  
+		    dx = attackingPiece.x - kingPos.x;  
+		    dy = attackingPiece.y - kingPos.y;  
+		    x = kingPos.x;  
+		    y = kingPos.y;  
+		    p = 2 * dy - dx;  
+		    while(x < attackingPiece.x)  
+		    {  
+		    	Point space = new Point();
+		        if(p >= 0)  
+		        {  
+		        	space.x = x;
+		        	space.y = y;
+		        	attackingSpaces.add(space);  
+		            y = y + 1;  
+		            p = p + 2 * dy - 2 * dx;  
+		        }  
+		        else  
+		        {  
+
+		        	space.x = x;
+		        	space.y = y;
+		        	attackingSpaces.add(space);  
+		            p = p + 2 * dy;}  
+		            x = x + 1;  
+		        }  
 		}
-		return ruleset;
+
+		return attackingSpaces;
 	}
 	
 }
